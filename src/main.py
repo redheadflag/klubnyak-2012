@@ -1,22 +1,65 @@
 import asyncio
-from services.ffmpeg import create_silent_audio
-from services.spotify import get_current_track
-from services.telegram import send_to_favorites
-from services.telegram import add_to_profile
+
+import config
+from schemas import Memory
+from services import (
+    spotify,
+    telegram,
+    youtube
+)
+
+
+memory = Memory()
+
+
+async def polling_currently_playing() -> None:
+    try:
+        while True:
+            song = spotify.get_current_track()    
+            if not song:
+                print("No song")
+                await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+                continue
+            if memory.is_same_song(song):
+                print(f"The same song is playing. Sleep for {config.SPOTIFY_REFRESH_TIME}s")
+                await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+                continue
+            try:
+                downloaded_song = youtube.search_and_download(song=song)
+            except ValueError:
+                print(f"Song not found. Sleep for {song.duration_sec}s")
+                await asyncio.sleep(song.duration_sec)
+                continue
+            
+            file = await telegram.send_to_favorites(filename=downloaded_song.path)
+            await telegram.add_to_profile(file.document.id, file.document.access_hash, file.document.file_reference)
+            
+            await asyncio.sleep(1)
+
+            if memory.file:
+                await telegram.remove_from_profile(
+                    memory.file.document.id,
+                    memory.file.document.access_hash,
+                    memory.file.document.file_reference
+                )
+            if config.REMOVE_DOWNLOADS:
+                downloaded_song.path.unlink(missing_ok=True)
+
+            memory.song = song
+            memory.file = file
+
+            await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+
+    except asyncio.CancelledError:
+        print("Polling has been stopped")
 
 
 async def main():
-    track_info = get_current_track()
-    if track_info:
-        title, artist = track_info
-        safe_filename = f"{title} - {artist}.mp3".replace("/", "-")
-        print(f"Creating silent audio for: {title} — {artist}")
-        filepath = create_silent_audio(safe_filename, title, artist)
-
-        file = await send_to_favorites(filepath, caption=f"{title} — {artist}")
-        await add_to_profile(file.document.id, file.document.access_hash, file.document.file_reference)
-    else:
-        print("No track is currently playing.")
+    await telegram.client.start(
+        phone=config.TELEGRAM_PHONE,
+        password=config.TELEGRAM_PASSWORD
+    )
+    await polling_currently_playing()
 
 
 if __name__ == "__main__":
