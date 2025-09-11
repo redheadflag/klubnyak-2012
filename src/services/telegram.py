@@ -1,13 +1,13 @@
 from functools import partial
 import time
 from telethon.types import InputDocument
-import config
+from config import telegram_config
 
 from telethon import TelegramClient
 from telethon.tl.functions.account import SaveMusicRequest, GetSavedMusicIdsRequest
 
 
-client = TelegramClient("spotify_session", config.TELEGRAM_API_ID, config.TELEGRAM_API_HASH)
+client = TelegramClient("spotify_session", telegram_config.api_id, telegram_config.api_hash)
 
 
 async def send_to_favorites(filename):

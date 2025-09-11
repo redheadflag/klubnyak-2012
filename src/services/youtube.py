@@ -1,7 +1,7 @@
 from pathlib import Path
 import yt_dlp
 
-import config
+from config import general_config
 from schemas import DownloadedSong, Song
 
 
@@ -56,7 +56,7 @@ def search_and_download(song: Song, tolerance: int = 5, max_results: int = 5) ->
     first_video = filtered_videos[0]
     ydl_opts_download = {
         "format": "bestaudio/best",
-        "outtmpl": str(config.OUTPUT_DIR / f"{str(song)}.%(ext)s"),
+        "outtmpl": str(general_config.output_dir_path / f"{str(song)}.%(ext)s"),
         "noplaylist": True,
         "postprocessors": [
             {  # Extract audio using ffmpeg and convert to mp3

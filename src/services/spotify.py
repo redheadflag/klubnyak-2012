@@ -1,15 +1,15 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-import config
+from config import spotify_config
 from schemas import Song
 
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id=config.SPOTIFY_CLIENT_ID,
-    client_secret=config.SPOTIFY_CLIENT_SECRET,
-    redirect_uri=config.SPOTIFY_REDIRECT_URI,
-    scope=config.SPOTIFY_SCOPE
+    client_id=spotify_config.client_id,
+    client_secret=spotify_config.client_secret,
+    redirect_uri=spotify_config.redirect_uri,
+    scope=spotify_config.scope,
 ))
 
 

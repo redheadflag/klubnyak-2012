@@ -1,6 +1,10 @@
 import asyncio
 
-import config
+from config import (
+    spotify_config,
+    general_config,
+    telegram_config
+)
 from schemas import Memory
 from services import (
     spotify,
@@ -18,11 +22,11 @@ async def polling_currently_playing() -> None:
             song = spotify.get_current_track()    
             if not song:
                 print("No song")
-                await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+                await asyncio.sleep(spotify_config.refresh_time)
                 continue
             if memory.is_same_song(song):
-                print(f"The same song is playing. Sleep for {config.SPOTIFY_REFRESH_TIME}s")
-                await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+                print(f"The same song is playing. Sleep for {spotify_config.refresh_time}s")
+                await asyncio.sleep(spotify_config.refresh_time)
                 continue
             try:
                 downloaded_song = youtube.search_and_download(song=song)
@@ -42,13 +46,13 @@ async def polling_currently_playing() -> None:
                     memory.file.document.access_hash,
                     memory.file.document.file_reference
                 )
-            if config.REMOVE_DOWNLOADS:
+            if general_config.remove_downloads:
                 downloaded_song.path.unlink(missing_ok=True)
 
             memory.song = song
             memory.file = file
 
-            await asyncio.sleep(config.SPOTIFY_REFRESH_TIME)
+            await asyncio.sleep(spotify_config.refresh_time)
 
     except asyncio.CancelledError:
         print("Polling has been stopped")
@@ -56,8 +60,8 @@ async def polling_currently_playing() -> None:
 
 async def main():
     await telegram.client.start(
-        phone=config.TELEGRAM_PHONE,
-        password=config.TELEGRAM_PASSWORD
+        phone=telegram_config.phone,
+        password=telegram_config.password.get_secret_value()
     )
     await polling_currently_playing()
 

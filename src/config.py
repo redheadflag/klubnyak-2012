@@ -1,27 +1,54 @@
 from pathlib import Path
 
-# =====================
-# Spotify API
-# =====================
-SPOTIFY_CLIENT_ID = ""
-SPOTIFY_CLIENT_SECRET = ""
-SPOTIFY_REDIRECT_URI = "http://localhost:8888/callback"
-SPOTIFY_SCOPE = "user-read-currently-playing"
+from pydantic import HttpUrl, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-SPOTIFY_REFRESH_TIME = 10
 
-# =====================
-# Telegram API
-# =====================
-TELEGRAM_API_ID =               # from https://my.telegram.org
-TELEGRAM_API_HASH = ""
-
-TELEGRAM_PHONE = "+"
-TELEGRAM_PASSWORD = ""
-
-# =====================
-# General
-# =====================
 PARENT_DIR = Path(__file__).parent.parent
-OUTPUT_DIR = PARENT_DIR / "output"                   # folder to store generated files
-REMOVE_DOWNLOADS = True
+
+
+class SpotifyConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=PARENT_DIR / ".env",
+        env_prefix="spotify_",
+        extra="ignore"
+    )
+
+    client_id: str
+    client_secret: str
+    redirect_uri: HttpUrl
+    scope: str
+    
+    refresh_time: int
+
+
+class TelegramConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=PARENT_DIR / ".env",
+        env_prefix="telegram_",
+        extra="ignore"
+    )
+
+    api_id: int
+    api_hash: str
+    phone: str
+    password: SecretStr
+
+
+class GeneralConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=PARENT_DIR / ".env",
+        extra="ignore"
+    )
+
+    output_dir: str
+    remove_downloads: bool = True
+
+    @property
+    def output_dir_path(self) -> Path:
+        return PARENT_DIR / self.output_dir
+
+
+spotify_config = SpotifyConfig()    # type: ignore
+telegram_config = TelegramConfig()  # type: ignore
+general_config = GeneralConfig()    # type: ignore

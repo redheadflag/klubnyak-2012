@@ -21,7 +21,6 @@ class DownloadedSong(Song):
     path: Path
 
 
-
 class Memory:
     def __init__(self):
         self.song: Song | None  = None
