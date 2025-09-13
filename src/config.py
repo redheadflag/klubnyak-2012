@@ -50,6 +50,7 @@ class GeneralConfig(BaseSettings):
     output_dir: str
     remove_downloads: bool = True
     song_history_filename: str
+    cookies_filename: str
 
     @property
     def output_dir_path(self) -> Path:
@@ -58,6 +59,10 @@ class GeneralConfig(BaseSettings):
     @property
     def song_history_path(self) -> Path:
         return PARENT_DIR / self.song_history_filename
+    
+    @property
+    def cookies_path(self) -> Path:
+        return PARENT_DIR / self.cookies_filename
 
 
 spotify_config = SpotifyConfig()    # type: ignore

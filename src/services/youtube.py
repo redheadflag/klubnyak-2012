@@ -29,6 +29,7 @@ def search_and_download(song: Song, tolerance: int = 5, max_results: int = 5) ->
         "skip_download": True,  # first only get metadata
         "extract_flat": True,
         "noplaylist": True,
+        "cookiefile": general_config.cookies_path,
     }
 
     search_query = f"ytsearch{max_results}:{song.as_query}"
@@ -56,6 +57,7 @@ def search_and_download(song: Song, tolerance: int = 5, max_results: int = 5) ->
     first_video = filtered_videos[0]
     ydl_opts_download = {
         "format": "bestaudio/best",
+        "cookiefile": general_config.cookies_path,
         "outtmpl": str(general_config.output_dir_path / f"{str(song)}.%(ext)s"),
         "noplaylist": True,
         "postprocessors": [
