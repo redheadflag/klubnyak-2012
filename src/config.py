@@ -16,10 +16,16 @@ class SpotifyConfig(BaseSettings):
 
     client_id: str
     client_secret: str
+    username: str
     redirect_uri: HttpUrl
     scope: str
+    cache_filename: str = "spotify-token.json"
     
     refresh_time: int
+
+    @property
+    def cache_path(self) -> Path:
+        return PARENT_DIR / self.cache_filename
 
 
 class TelegramConfig(BaseSettings):

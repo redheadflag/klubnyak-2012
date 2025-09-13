@@ -1,16 +1,27 @@
 import spotipy
+from spotipy.cache_handler import CacheFileHandler
 from spotipy.oauth2 import SpotifyOAuth
 
-from config import spotify_config
+from config import spotify_config, PARENT_DIR
 from schemas import Song
 
 
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+cache_handler = CacheFileHandler(
+    cache_path=spotify_config.cache_path,
+    username=spotify_config.username
+)
+
+
+auth_manager = SpotifyOAuth(
     client_id=spotify_config.client_id,
     client_secret=spotify_config.client_secret,
-    redirect_uri=spotify_config.redirect_uri,
+    redirect_uri=str(spotify_config.redirect_uri),
     scope=spotify_config.scope,
-))
+    cache_handler=cache_handler
+)
+
+
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 def get_current_track() -> Song | None:

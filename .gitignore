@@ -2,6 +2,7 @@
 *.mp3
 
 song-history.json
+spotify-token.json
 
 # MacOS https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 
