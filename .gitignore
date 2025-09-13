@@ -1,6 +1,8 @@
 *.session
 *.mp3
 
+song-history.json
+
 # MacOS https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 
 # General

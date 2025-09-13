@@ -2,11 +2,11 @@ from functools import partial
 import time
 from telethon.types import InputDocument
 from telethon.tl.types.account import SavedMusicIds
-from config import telegram_config
 
 from telethon import TelegramClient
 from telethon.tl.functions.account import SaveMusicRequest, GetSavedMusicIdsRequest
 
+from config import telegram_config
 from schemas import DownloadedSong, UploadedSong
 
 
@@ -17,14 +17,16 @@ async def send_to_favorites(downloaded_song: DownloadedSong) -> UploadedSong:
     """Send a file to Telegram 'Saved Messages' (Favorites)."""
     file = await client.send_file("me", str(downloaded_song.path))
 
-    if not getattr(file, "document", None):
+    if not (document := getattr(file, "document", None)):
         raise ValueError("Telegram did not return a document for uploaded file.")
     
     return UploadedSong(
         title=downloaded_song.title,
         artist=downloaded_song.artist,
         duration_sec=downloaded_song.duration_sec,
-        document=file.document  # type: ignore
+        file_id=document.id,
+        access_hash=document.access_hash,
+        file_reference=document.file_reference
     )
 
 
@@ -32,9 +34,9 @@ async def _save_music(uploaded_song: UploadedSong, unsave: bool):
     result = await client(
         SaveMusicRequest(
             id=InputDocument(
-                id=uploaded_song.document.id,
-                access_hash=uploaded_song.document.access_hash,
-                file_reference=uploaded_song.document.file_reference
+                id=uploaded_song.file_id,
+                access_hash=uploaded_song.access_hash,
+                file_reference=uploaded_song.file_reference
             ),
             unsave=unsave
         )
