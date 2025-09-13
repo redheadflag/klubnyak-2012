@@ -5,7 +5,7 @@ from config import (
     general_config,
     telegram_config
 )
-from schemas import Memory
+from schemas import SongHistory
 from services import (
     spotify,
     telegram,
@@ -13,7 +13,7 @@ from services import (
 )
 
 
-memory = Memory()
+song_history = SongHistory()
 
 
 async def polling_currently_playing() -> None:
@@ -21,10 +21,10 @@ async def polling_currently_playing() -> None:
         while True:
             song = spotify.get_current_track()    
             if not song:
-                print("No song")
+                print("No song is playing now")
                 await asyncio.sleep(spotify_config.refresh_time)
                 continue
-            if memory.is_same_song(song):
+            if song_history.is_same_song(song):
                 print(f"The same song is playing. Sleep for {spotify_config.refresh_time}s")
                 await asyncio.sleep(spotify_config.refresh_time)
                 continue
@@ -35,22 +35,18 @@ async def polling_currently_playing() -> None:
                 await asyncio.sleep(song.duration_sec)
                 continue
             
-            file = await telegram.send_to_favorites(filename=downloaded_song.path)
-            await telegram.add_to_profile(file.document.id, file.document.access_hash, file.document.file_reference)
+            uploaded_song = await telegram.send_to_favorites(downloaded_song=downloaded_song)
             
-            await asyncio.sleep(1)
+            await telegram.add_to_profile(uploaded_song)
+            
+            if len(song_history) >= 5:
+                await asyncio.sleep(0.5)
+                await telegram.remove_from_profile(song_history.pop())
 
-            if memory.file:
-                await telegram.remove_from_profile(
-                    memory.file.document.id,
-                    memory.file.document.access_hash,
-                    memory.file.document.file_reference
-                )
             if general_config.remove_downloads:
                 downloaded_song.path.unlink(missing_ok=True)
 
-            memory.song = song
-            memory.file = file
+            song_history.add(uploaded_song)
 
             await asyncio.sleep(spotify_config.refresh_time)
 

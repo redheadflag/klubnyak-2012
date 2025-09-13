@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from telethon.types import Document
+
 
 @dataclass
 class Song:
@@ -21,10 +23,31 @@ class DownloadedSong(Song):
     path: Path
 
 
-class Memory:
-    def __init__(self):
-        self.song: Song | None  = None
-        self.file: object | None  = None
+@dataclass
+class UploadedSong(Song):
+    document: Document
 
-    def is_same_song(self, song) -> bool:
-        return self.song is not None and str(self.song) == str(song)
+
+class SongHistory:
+    def __init__(self):
+        self.history: list[UploadedSong] = []
+
+    def __len__(self):
+        return len(self.history)
+    
+    def __getitem__(self, position):
+        return self.history[position]
+    
+    def __contains__(self, song: Song):
+        return any(s.title == song.title and s.artist == song.artist for s in self.history)
+    
+    def add(self, song: UploadedSong) -> None:
+        self.history.append(song)
+    
+    def pop(self) -> UploadedSong:
+        return self.history.pop(0)
+
+    def is_same_song(self, song: Song) -> bool:
+        if len(self) == 0:
+            return False
+        return song in self
